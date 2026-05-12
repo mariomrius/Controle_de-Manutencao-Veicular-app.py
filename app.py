@@ -268,102 +268,83 @@ elif menu == "Consultar Manutenções":
 
     if not df.empty:
 
-        # =========================
-        # CABEÇALHO
-        # =========================
-        cab1, cab2, cab3, cab4, cab5, cab6, cab7, cab8, cab9, cab10 = st.columns(
-            [1.2, 1.5, 1.5, 2, 1.5, 1.5, 1.5, 3, 0.7, 0.7]
+        df_exibir = df.copy()
+
+        df_exibir['km'] = df_exibir[
+            'km'
+        ].apply(formatar_km)
+
+        df_exibir['valor_peca'] = df_exibir[
+            'valor_peca'
+        ].apply(formatar_real)
+
+        df_exibir['mao_obra'] = df_exibir[
+            'mao_obra'
+        ].apply(formatar_real)
+
+        df_exibir['valor_total'] = df_exibir[
+            'valor_total'
+        ].apply(formatar_real)
+
+        df_exibir.columns = [
+            "ID",
+            "Data",
+            "KM",
+            "Peça",
+            "Valor Peça",
+            "Mão de Obra",
+            "Valor Total",
+            "Descrição"
+        ]
+
+        st.dataframe(
+            df_exibir,
+            use_container_width=True,
+            hide_index=True
         )
 
-        cab1.markdown("**ID**")
-        cab2.markdown("**Data**")
-        cab3.markdown("**KM**")
-        cab4.markdown("**Peça**")
-        cab5.markdown("**Valor Peça**")
-        cab6.markdown("**Mão Obra**")
-        cab7.markdown("**Total**")
-        cab8.markdown("**Descrição**")
-        cab9.markdown("**✏️**")
-        cab10.markdown("**🗑️**")
-
         st.divider()
 
-        # =========================
-        # LINHAS
-        # =========================
-        for index, row in df.iterrows():
+        st.subheader(
+            "Ações"
+        )
 
-            col1, col2, col3, col4, col5, col6, col7, col8, col9, col10 = st.columns(
-                [1.2, 1.5, 1.5, 2, 1.5, 1.5, 1.5, 3, 0.7, 0.7]
-            )
+        ids = df['id'].tolist()
 
-            col1.write(row['id'])
+        id_selecionado = st.selectbox(
+            "Selecione o ID",
+            ids
+        )
 
-            col2.write(row['data'])
+        col1, col2 = st.columns(2)
 
-            col3.write(
-                formatar_km(
-                    row['km']
+        with col1:
+
+            if st.button(
+                "✏️ Editar"
+            ):
+
+                st.session_state[
+                    'editar_id'
+                ] = id_selecionado
+
+        with col2:
+
+            if st.button(
+                "🗑️ Excluir"
+            ):
+
+                excluir_manutencao(
+                    id_selecionado
                 )
-            )
 
-            col4.write(
-                row['peca']
-            )
-
-            col5.write(
-                formatar_real(
-                    row['valor_peca']
+                st.success(
+                    "Registro excluído!"
                 )
-            )
 
-            col6.write(
-                formatar_real(
-                    row['mao_obra']
-                )
-            )
+                time.sleep(1)
 
-            col7.write(
-                formatar_real(
-                    row['valor_total']
-                )
-            )
-
-            col8.write(
-                row['descricao']
-            )
-
-            with col9:
-
-                if st.button(
-                    "✏️",
-                    key=f"editar_{row['id']}"
-                ):
-
-                    st.session_state[
-                        'editar_id'
-                    ] = row['id']
-
-            with col10:
-
-                if st.button(
-                    "🗑️",
-                    key=f"excluir_{row['id']}"
-                ):
-
-                    excluir_manutencao(
-                        row['id']
-                    )
-
-                    st.success(
-                        "Registro excluído!"
-                    )
-
-                    time.sleep(1)
-
-                    st.rerun()
-
-        st.divider()
+                st.rerun()
 
         total = listar_manutencoes()[
             'valor_total'
